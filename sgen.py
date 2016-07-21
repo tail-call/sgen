@@ -16,11 +16,23 @@ class Osc:
     """
     def __init__(self, frequency=440, amplitude=1.0, phase = 0,
                  rate=8000):
-        self.frequency = frequency
+        self.rate = rate
         self.amplitude = amplitude
         self.phase = phase
-        self.rate = rate
-        # Not really sure where to put time_delta
+        # Unfortunately I _have_ to keep this at the bottom because
+        # frequency property depends on existence of `rate' variable.
+        # Is there a way to work around this?
+        self.frequency = frequency
+
+
+    @property
+    def frequency(self):
+        return self._frequency
+
+
+    @frequency.setter
+    def frequency(self, value):
+        self._frequency = value
         self.time_delta = self.frequency/self.rate
 
 
