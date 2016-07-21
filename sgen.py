@@ -3,8 +3,6 @@ import sys
 from math import floor
 from random import random 
 
-SAMPLE_RATE = int(sys.argv[1])
-
 def clamp(x):
     """
     Converts a real number x ∈ [-1.0, + 1.0] to an unsigned 8 bit integer

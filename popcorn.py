@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
 # Run like this:
-# $ python sngen.py 44000 | aplay -r 44000
+# $ python popcorn.py 44000 | aplay -r 44000
 
 from sgen import *
+
+SAMPLE_RATE = int(sys.argv[1])
 
 sq1 = SquareOsc(amplitude=0.3, rate=SAMPLE_RATE)
 m1 = melody([
