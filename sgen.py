@@ -5,8 +5,7 @@ from random import random
 
 def clamp(x):
     """
-    Converts a real number x ∈ [-1.0, + 1.0] to an unsigned 8 bit integer
-    (i.e. (-128, 127) as (0, 255))
+    Converts a real number x ∈ [-1.0, + 1.0] to an unsigned 8 bit integer.
     """
     return floor((x+1.0)*128)
 
@@ -90,7 +89,7 @@ def note(symbol):
     notes_offsets = { 'A': +0, 'B': +2, 'C': -9, 
                       'D': -7, 'E': -5, 'F': -4,
                       'G': -2 }
-    base = 440 # frequency of A4 is 110 Hz
+    base = 440 # frequency of A4 is 440 Hz
     root = 2**(1/12)
 
     offset = notes_offsets[symbol[0].upper()]
