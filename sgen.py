@@ -23,12 +23,13 @@ class Osc:
         self.amplitude = amplitude
         self.phase = phase
         self.rate = rate
+        # Not really sure where to put time_delta
+        self.time_delta = self.frequency/self.rate
 
 
     def incphase(self):
-        time_delta = self.frequency/self.rate
-        self.phase = (self.phase + time_delta) % 1
-        return time_delta
+        self.time_delta = self.frequency/self.rate
+        self.phase = (self.phase + self.time_delta) % 1
 
 
     def nextsample(self):
