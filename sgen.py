@@ -10,7 +10,23 @@ def clamp(x):
     return floor((x+1.0)*128)
 
 
-class Osc:
+class Generator:
+    """
+    A generic generator class.
+    """
+    def nextsample(self):
+        raise NotImplementedError
+
+
+    def stop(self):
+        raise NotImplementedError
+
+
+    def reset(self):
+        raise NotImplementedError
+
+
+class Osc(Generator):
     """
     A generic oscillator class.
     """
@@ -48,10 +64,7 @@ class Osc:
 
 
     def oscillate(self):
-        """
-        A method to be defined in derived class.
-        """
-        pass
+        raise NotImplementedError
 
 
 class SquareOsc(Osc):
@@ -72,6 +85,7 @@ class SawOsc(Osc):
     def oscillate(self):
         return self.phase * 2 - 1
 
+
 class NoiseOsc(Osc):
     """
     Noise generator.
@@ -81,6 +95,75 @@ class NoiseOsc(Osc):
             return random()*2 - 1
         else:
             return 0
+
+
+class Adsr(Generator):
+    """
+    Attack-Decay-Sustain-Release wrapper for Osc objects.
+    """
+    def __init__(self, osc, a_ms, d_ms, s_lv, r_ms):
+
+        assert(isinstance(osc, Osc))
+
+        self.osc = osc
+        self.attack = a_ms * 1e-3
+        self.decay = d_ms * 1e-3
+        self.sustain = s_lv
+        self.release = r_ms * 1e-3
+
+        self.reset()
+
+
+    def nextsample(self):
+
+        time_delta = 1/self.osc.rate
+
+        def handle_attack(self):
+            self.amplitude += time_delta/self.attack
+
+            if self.amplitude >= 1.0:
+                self.amplitude = 1.0
+                self.state = 'decay'
+
+        def handle_decay(self):
+            self.amplitude -= time_delta / \
+                              (self.decay * (1 - self.sustain))
+
+            if self.amplitude <= self.sustain:
+                self.amplitude = self.sustain
+                self.state = 'hold'
+
+        def handle_hold(self):
+            """
+            While you hold a note, amplitude won't change.
+            """
+            pass
+
+        def handle_release(self):
+            self.amplitude -= time_delta / \
+                              (self.release * self.sustain)
+
+            if self.amplitude <= 0:
+                self.amplitude = 0
+                self.state = 'hold'
+
+        # Here comes the smart part.
+
+        { 'attack' : handle_attack,
+          'decay'  : handle_decay,
+          'hold'   : handle_hold,
+          'release': handle_release }[self.state](self)
+
+        return self.amplitude * self.osc.nextsample()
+
+
+    def stop(self):
+        self.state = 'release'
+
+
+    def reset(self):
+        self.amplitude = 0.0
+        self.state = 'attack'
 
 
 def writesample(x):
