@@ -7,7 +7,9 @@ from sgen import *
 
 SAMPLE_RATE = int(sys.argv[1])
 
-sq1 = SquareOsc(amplitude=0.3, rate=SAMPLE_RATE)
+sq1 = Adsr(SquareOsc(amplitude=0.5, rate=SAMPLE_RATE),
+           a_ms = 100, d_ms = 1, s_lv = 0.0, r_ms = 100)
+
 m1 = melody([
              note("G5"), 0,
              note("F5"), 0,
@@ -108,7 +110,7 @@ while True:
     s2 = sq2.nextsample()
     s3 = sq3.nextsample()
 
-    writesample(s1+s2+s3)
+    writesample(s1)
 
     ticks = ticks + 1
     if ticks > SAMPLE_RATE/150: # 150 times per second
@@ -120,8 +122,8 @@ while True:
 
     if state > 17:
         state = 0
-        sq1.amplitude = 0.3
-        sq1.frequency = next(m1)
+        sq1.reset()
+        sq1.osc.frequency = next(m1)
         sq2.amplitude = 0.2
         sq2.frequency = next(m2)
         sq3.amplitude = 0.2
