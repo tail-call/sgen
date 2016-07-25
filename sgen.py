@@ -49,6 +49,8 @@ class Osc(Generator):
     @frequency.setter
     def frequency(self, value):
         self._frequency = value
+        # FIXME: this is misleading; time_delta is actually a phase
+        # increment over each sample
         self.time_delta = self.frequency/self.rate
 
 
@@ -141,7 +143,7 @@ class Adsr(Generator):
 
         def handle_release(self):
             self.amplitude -= time_delta / \
-                              (self.release * self.sustain)
+                              (self.release / self.sustain)
 
             if self.amplitude <= 0:
                 self.amplitude = 0

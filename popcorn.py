@@ -110,7 +110,7 @@ while True:
     s2 = sq2.nextsample()
     s3 = sq3.nextsample()
 
-    writesample(s1)
+    writesample(s1+s2+s3)
 
     ticks = ticks + 1
     if ticks > SAMPLE_RATE/150: # 150 times per second
