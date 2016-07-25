@@ -1,12 +1,14 @@
 import sys
-
-from math import floor
+    
+from math import floor, pi, sin
 from random import random 
 
 def clamp(x):
     """
     Converts a real number x ∈ [-1.0, + 1.0] to an unsigned 8 bit integer.
     """
+    if x >  1.0: x =  1.0
+    if x < -1.0: x = -1.0
     return floor((x+1.0)*128)
 
 
@@ -31,14 +33,15 @@ class Osc(Generator):
     A generic oscillator class.
     """
     def __init__(self, frequency=440, amplitude=1.0, phase = 0,
-                 rate=8000):
+                 rate=8000, inclination=0.5):
         self.rate = rate
         self.amplitude = amplitude
         self.phase = phase
         # Unfortunately I _have_ to keep this at the bottom because
         # frequency property depends on existence of `rate' variable.
-        # Is there a way to work around this?
         self.frequency = frequency
+        # A generic variabe for things like pulse width and whatnot
+        self.inclination = inclination
 
 
     @property
@@ -49,14 +52,12 @@ class Osc(Generator):
     @frequency.setter
     def frequency(self, value):
         self._frequency = value
-        # FIXME: this is misleading; time_delta is actually a phase
-        # increment over each sample
-        self.time_delta = self.frequency/self.rate
+        self.phase_delta = self.frequency/self.rate
 
 
     def incphase(self):
-        self.time_delta = self.frequency/self.rate
-        self.phase = (self.phase + self.time_delta) % 1
+        self.phase_delta = self.frequency/self.rate
+        self.phase = (self.phase + self.phase_delta) % 1
 
 
     def nextsample(self):
@@ -71,10 +72,10 @@ class Osc(Generator):
 
 class SquareOsc(Osc):
     """
-    Square wave oscillator.
+    Square wave oscillator. _|¯|_|¯
     """
     def oscillate(self):
-        if self.phase < 0.5:
+        if self.phase < self.inclination:
             return 1.0
         else:
             return -1.0
@@ -82,10 +83,29 @@ class SquareOsc(Osc):
 
 class SawOsc(Osc):
     """
-    Sawtooth wave oscillator.
+    Sawtooth wave oscillator. /|/|/|/|
     """
     def oscillate(self):
         return self.phase * 2 - 1
+
+
+class TriangleOsc(Osc):
+    """
+    Triangle wave oscillator. \/\/\/
+    """
+    def oscillate(self):
+        if self.phase < self.inclination:
+            return self.phase * 4 - 2
+        else:
+            return 2 - (self.phase) * 4
+
+
+class SineOsc(Osc):
+    """
+    Sine wave oscillator.
+    """
+    def oscillate(self):
+        return sin(self.phase * pi * 2)
 
 
 class NoiseOsc(Osc):
