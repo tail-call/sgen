@@ -12,6 +12,15 @@ def clamp(x):
     return floor((x+1.0)*128)
 
 
+def lookup(dictionary, key, safeguard=None):
+    """
+    Looks up for item in dictionary. Returns safeguard if item not found.
+    """
+    if key in dictionary:
+        return dictionary[key]
+    else:
+        return safeguard
+
 class Generator:
     """
     A generic generator class.
@@ -32,32 +41,21 @@ class Osc(Generator):
     """
     A generic oscillator class.
     """
-    def __init__(self, frequency=440, amplitude=1.0, phase = 0,
-                 rate=8000, inclination=0.5):
-        self.rate = rate
-        self.amplitude = amplitude
-        self.phase = phase
-        # Unfortunately I _have_ to keep this at the bottom because
-        # frequency property depends on existence of `rate' variable.
-        self.frequency = frequency
+    def __init__(self, **args):
+
+        self.rate = lookup(args, 'rate', 44100)
+        self.amplitude = lookup(args, 'amplitude', 1.0)
+        self.phase = lookup(args, 'phase', 0)
+
+        self.frequency = lookup(args, 'frequency', 440)
+
         # A generic variabe for things like pulse width and whatnot
-        self.inclination = inclination
-
-
-    @property
-    def frequency(self):
-        return self._frequency
-
-
-    @frequency.setter
-    def frequency(self, value):
-        self._frequency = value
-        self.phase_delta = self.frequency/self.rate
+        self.inclination = lookup(args, 'inclination', 0.5)
 
 
     def incphase(self):
-        self.phase_delta = self.frequency/self.rate
-        self.phase = (self.phase + self.phase_delta) % 1
+        phase_delta = self.frequency/self.rate
+        self.phase = (self.phase + phase_delta) % 1
 
 
     def nextsample(self):
