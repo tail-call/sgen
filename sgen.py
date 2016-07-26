@@ -3,6 +3,8 @@ import sys
 from math import floor, pi, sin
 from random import random 
 
+DEFAULT_SAMPLE_RATE = 44100
+
 def clamp(x):
     """
     Converts a real number x ∈ [-1.0, + 1.0] to an unsigned 8 bit integer.
@@ -21,10 +23,15 @@ def lookup(dictionary, key, safeguard=None):
     else:
         return safeguard
 
+
 class Generator:
     """
     A generic generator class.
     """
+    def __init__(self, **args):
+        self.rate = lookup(args, 'rate', DEFAULT_SAMPLE_RATE)
+
+
     def nextsample(self):
         raise NotImplementedError
 
@@ -34,7 +41,8 @@ class Generator:
 
 
     def reset(self):
-        raise NotImplementedError
+        pass
+        #raise NotImplementedError
 
 
 class Osc(Generator):
@@ -43,7 +51,7 @@ class Osc(Generator):
     """
     def __init__(self, **args):
 
-        self.rate = lookup(args, 'rate', 44100)
+        super().__init__(**args)
         self.amplitude = lookup(args, 'amplitude', 1.0)
         self.phase = lookup(args, 'phase', 0)
 
@@ -92,7 +100,7 @@ class TriangleOsc(Osc):
     Triangle wave oscillator. \/\/\/
     """
     def oscillate(self):
-        if self.phase < self.inclination:
+        if self.phase < (self.inclination % 1):
             return self.phase * 4 - 2
         else:
             return 2 - (self.phase) * 4
@@ -131,7 +139,20 @@ class Adsr(Generator):
         self.sustain = s_lv
         self.release = r_ms * 1e-3
 
+        # FIXME: BAD HACK
+        self.rate = osc.rate
+
         self.reset()
+
+
+    @property
+    def frequency(self):
+        return self.osc.frequency
+
+
+    @frequency.setter
+    def frequency(self, value):
+        self.osc.frequency = value
 
 
     def nextsample(self):
@@ -222,6 +243,44 @@ def note(symbol):
     multiplier = int(symbol[0])
 
     return base * root ** (offset - (4 - multiplier) * 12)
+
+
+class Tracker(Generator):
+    """
+    A generator that sequentially plays notes from pattern. 
+    """
+
+    def __init__(self, **args):
+        super().__init__(**args)
+        self.instrument = args['instrument']
+        self.track = self.parse(args['pattern'])
+        self.bpm = lookup(args, 'bpm', 150)
+        self.period = self.instrument.rate/(self.bpm/60)
+        self.counter = self.period
+
+
+    def nextsample(self):
+        self.counter += 1
+
+        if self.counter > self.period:
+            self.counter = 0
+            next(self.track)
+
+        return self.instrument.nextsample()
+
+        
+
+    def parse(self, pattern):
+        for block in pattern.split():
+            if block == "-":
+                pass
+            elif block == "!":
+                self.instrument.stop()
+            else:
+                self.instrument.frequency = note(block)
+                self.instrument.reset()
+            yield
+        self.reset()
 
 
 def melody(notes):
