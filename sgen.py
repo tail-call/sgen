@@ -37,7 +37,8 @@ class Generator:
 
 
     def stop(self):
-        raise NotImplementedError
+        pass
+        #raise NotImplementedError
 
 
     def reset(self):
