@@ -20,5 +20,5 @@ while True:
     
     sq.osc.frequency -= 0.008
 
-    if ctr > 1 * SAMPLE_RATE: # 3 seconds later
+    if ctr > 1 * SAMPLE_RATE: # 1 second later
         sq.stop()
